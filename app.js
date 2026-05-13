@@ -13,7 +13,7 @@ let currentOrder = null;
 
 // ── Avvio ─────────────────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
-  const key = localStorage.getItem("scottino_api_key");
+  const key = sessionStorage.getItem("scottino_api_key");
   if (key) {
     showApp();
   } else {
@@ -34,7 +34,7 @@ function showApp() {
 }
 
 function showConfig() {
-  const existing = localStorage.getItem("scottino_api_key") || "";
+  const existing = sessionStorage.getItem("scottino_api_key") || "";
   document.getElementById("apiKeyInput").value = existing ? "••••••••••••••••" : "";
   document.getElementById("config-error").style.display = "none";
   showScreen("screen-config");
@@ -49,7 +49,7 @@ async function saveApiKey() {
 
   if (!key || key.startsWith("•")) {
     // Se non ha cambiato la chiave mascherata, vai avanti
-    const existing = localStorage.getItem("scottino_api_key");
+    const existing = sessionStorage.getItem("scottino_api_key");
     if (existing) { showApp(); return; }
   }
 
@@ -74,7 +74,7 @@ async function saveApiKey() {
         "anthropic-dangerous-direct-browser-access": "true"
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
+        model: "claude-haiku-3-5-20241022",
         max_tokens: 10,
         messages: [{ role: "user", content: "ok" }]
       })
@@ -84,7 +84,7 @@ async function saveApiKey() {
       throw new Error("chiave non valida");
     }
 
-    localStorage.setItem("scottino_api_key", key);
+    sessionStorage.setItem("scottino_api_key", key);
     showApp();
 
   } catch (e) {
@@ -171,15 +171,7 @@ function toggleMic() {
       'Premi per registrare<br><span class="hint-small">(oppure scrivi direttamente sotto)</span>';
   };
 
-  // Edge a volte richiede il permesso esplicito — lo chiediamo prima
-  navigator.mediaDevices.getUserMedia({ audio: true })
-    .then(() => recognition.start())
-    .catch(() => {
-      const warn = document.getElementById("mic-warning");
-      const txt  = document.getElementById("mic-warning-text");
-      warn.style.display = "flex";
-      txt.textContent = "Permesso microfono negato. Clicca sull'icona 🔒 nella barra dell'indirizzo e consenti il microfono.";
-    });
+  recognition.start();
 }
 
 // ── UI helpers ────────────────────────────────────────────────────────────────
@@ -249,7 +241,7 @@ async function analyze() {
   const text = document.getElementById("transcription").textContent.trim();
   if (!text) return;
 
-  const apiKey = localStorage.getItem("scottino_api_key");
+  const apiKey = sessionStorage.getItem("scottino_api_key");
   if (!apiKey) { showConfig(); return; }
 
   setStep(3);
@@ -286,14 +278,14 @@ async function analyze() {
         "anthropic-dangerous-direct-browser-access": "true"
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
+        model: "claude-haiku-3-5-20241022",
         max_tokens: 300,
         messages: [{ role: "user", content: prompt }]
       })
     });
 
     if (res.status === 401) {
-      localStorage.removeItem("scottino_api_key");
+      sessionStorage.removeItem("scottino_api_key");
       showConfig();
       return;
     }
