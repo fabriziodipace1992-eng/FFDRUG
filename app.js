@@ -67,7 +67,7 @@ async function saveApiKey() {
   err.style.display = "none";
 
   try {
-    const res = await fetch("/functions/proxy", {
+    const res = await fetch("/proxy", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -254,7 +254,7 @@ async function analyze() {
     `{"intent":"descrizione","product_index":<indice o -1>,"quantity":<intero>,"unit":"pacco/pz/conf","confidence":"alta|media|bassa","note":""}`;
 
   try {
-    const res = await fetch("/functions/proxy", {
+    const res = await fetch("/proxy", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
