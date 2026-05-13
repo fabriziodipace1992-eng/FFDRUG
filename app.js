@@ -4,7 +4,7 @@
  * Fasi 1-4: voce → trascrizione → IA → ricerca prodotto
  */
 
-const APIKEY = "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";
+const APIKEY = "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";
 
 let recognition  = null;
 let recording    = false;
