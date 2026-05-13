@@ -1,4 +1,4 @@
-# Scottino 🏥
+# FFDrug 🏥
 **Assistente ordini vocale — Ospedale Le Scotte di Siena**
 
 Prototipo web per ordinare materiale sanitario tramite input vocale o testuale.
