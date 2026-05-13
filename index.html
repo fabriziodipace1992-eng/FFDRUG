@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scottino — Ordine Materiale</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Tabler Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.34.0/webfont/tabler-icons.min.css" />
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="logo">
+      <i class="ti ti-building-hospital"></i>
+      <span>Scottino</span>
+    </div>
+    <p class="subtitle">Ordine materiale — Ospedale Le Scotte di Siena</p>
+  </header>
+
+  <main class="app-main">
+
+    <!-- Barra avanzamento fasi -->
+    <div class="steps" id="steps">
+      <div class="step active" id="s1"><div class="step-dot"></div>Voce</div>
+      <div class="step-sep"></div>
+      <div class="step" id="s2"><div class="step-dot"></div>Testo</div>
+      <div class="step-sep"></div>
+      <div class="step" id="s3"><div class="step-dot"></div>IA</div>
+      <div class="step-sep"></div>
+      <div class="step" id="s4"><div class="step-dot"></div>Prodotto</div>
+    </div>
+
+    <!-- Fase 1-2: input -->
+    <div class="card" id="phase-input">
+      <div class="mic-area">
+        <button class="mic-btn" id="micBtn" onclick="toggleMic()" aria-label="Registra voce">
+          <i class="ti ti-microphone"></i>
+        </button>
+        <p class="mic-hint" id="micHint">
+          Premi per registrare<br>
+          <span class="hint-small">(oppure scrivi direttamente sotto)</span>
+        </p>
+      </div>
+
+      <p class="label">Trascrizione / testo</p>
+      <div id="transcription"
+           class="transcription-box empty"
+           contenteditable="true"
+           onfocus="clearPlaceholder()"
+           oninput="onTextInput()">
+        es. "ordina 2 guanti M" oppure "serve paracetamolo"
+      </div>
+
+      <p class="label" style="margin-top: 0.75rem">Esempi rapidi</p>
+      <div class="examples">
+        <span class="example-chip" onclick="useExample(this)">ordina guanti M</span>
+        <span class="example-chip" onclick="useExample(this)">serve metilprednisolone</span>
+        <span class="example-chip" onclick="useExample(this)">butterfly 18G</span>
+        <span class="example-chip" onclick="useExample(this)">3 rotoli di carta</span>
+        <span class="example-chip" onclick="useExample(this)">paracetamolo infusione</span>
+      </div>
+
+      <button class="analyze-btn" id="analyzeBtn" onclick="analyze()" disabled>
+        <i class="ti ti-sparkles"></i> Interpreta e cerca prodotto
+      </button>
+    </div>
+
+    <!-- Catalogo prodotti espandibile -->
+    <div class="db-section">
+      <button class="db-toggle" onclick="toggleDB()" id="dbToggleBtn">
+        <i class="ti ti-database"></i>
+        Catalogo prodotti (<span id="dbCount">0</span> prodotti)
+        <i class="ti ti-chevron-down" id="dbChevron"></i>
+      </button>
+      <div id="dbTable" class="db-table-wrap" style="display:none">
+        <table class="db">
+          <thead>
+            <tr>
+              <th>Nome prodotto</th>
+              <th>Nome commerciale</th>
+              <th>Cod. barre</th>
+              <th>Cod. numerico</th>
+            </tr>
+          </thead>
+          <tbody id="dbBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Fase 3-4: risultato -->
+    <div id="phase-result"></div>
+
+  </main>
+
+  <script src="database.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
