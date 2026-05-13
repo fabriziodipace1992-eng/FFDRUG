@@ -4,17 +4,102 @@
  * Fasi 1-4: voce → trascrizione → IA → ricerca prodotto
  */
 
-const APIKEY = "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";
-
+let APIKEY       = null;
 let recognition  = null;
 let recording    = false;
 let hasText      = false;
 let currentOrder = null;
 
+// ── Cookie helpers ────────────────────────────────────────────────────────────
+function setCookie(name, value, days) {
+  const d = new Date();
+  d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
+  document.cookie = name + "=" + encodeURIComponent(value) + ";expires=" + d.toUTCString() + ";path=/;SameSite=Strict";
+}
+
+function getCookie(name) {
+  const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
+  return match ? decodeURIComponent(match[2]) : null;
+}
+
+function deleteCookie(name) {
+  document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;";
+}
+
+// ── Avvio ─────────────────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
+  const saved = getCookie("scottino_key");
+  if (saved && saved.startsWith("sk-ant-")) {
+    APIKEY = saved;
+    showApp();
+  } else {
+    showScreen("screen-config");
+  }
+});
+
+// ── Schermate ─────────────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll(".screen").forEach(s => s.style.display = "none");
+  document.getElementById(id).style.display = "block";
+}
+
+function showApp() {
+  showScreen("screen-app");
   buildDBTable();
   checkMicSupport();
-});
+}
+
+// ── Salvataggio chiave ────────────────────────────────────────────────────────
+async function saveApiKey() {
+  const input = document.getElementById("apiKeyInput");
+  const btn   = document.getElementById("configBtn");
+  const err   = document.getElementById("config-error");
+  const key   = input.value.trim();
+
+  if (!key.startsWith("sk-ant-")) {
+    err.textContent = "La chiave deve iniziare con sk-ant- — controlla di averla copiata per intero.";
+    err.style.display = "block";
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Verifica in corso...';
+  err.style.display = "none";
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": key,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5",
+        max_tokens: 10,
+        messages: [{ role: "user", content: "ok" }]
+      })
+    });
+
+    if (res.status === 401) {
+      err.textContent = "Chiave non valida. Controlla di averla copiata per intero.";
+      err.style.display = "block";
+      return;
+    }
+
+    APIKEY = key;
+    setCookie("scottino_key", key, 30);
+    showApp();
+
+  } catch (e) {
+    err.textContent = "Errore di connessione. Verifica internet e riprova.";
+    err.style.display = "block";
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-check"></i> Salva e avvia';
+  }
+}
 
 // ── Microfono ─────────────────────────────────────────────────────────────────
 function checkMicSupport() {
@@ -69,7 +154,7 @@ function toggleMic() {
 
   recognition.onerror = (e) => {
     if (e.error === "not-allowed") {
-      showMicWarning("Microfono bloccato. Clicca 🔒 nella barra dell'indirizzo e consenti il microfono.");
+      showMicWarning("Microfono bloccato. Clicca 🔒 nella barra e consenti il microfono.");
     } else if (e.error !== "no-speech") {
       showMicWarning("Errore microfono. Scrivi la richiesta a mano.");
     }
@@ -150,6 +235,8 @@ async function analyze() {
   const text = document.getElementById("transcription").textContent.trim();
   if (!text) return;
 
+  if (!APIKEY) { showScreen("screen-config"); return; }
+
   setStep(3);
   const btn = document.getElementById("analyzeBtn");
   btn.disabled = true;
@@ -183,6 +270,13 @@ async function analyze() {
       })
     });
 
+    if (res.status === 401) {
+      APIKEY = null;
+      deleteCookie("scottino_key");
+      showScreen("screen-config");
+      return;
+    }
+
     const data   = await res.json();
     const raw    = data.content.map(c => c.text || "").join("").trim().replace(/```json|```/g, "").trim();
     const parsed = JSON.parse(raw);
@@ -196,7 +290,7 @@ async function analyze() {
     document.getElementById("phase-result").innerHTML = `
       <div class="result-card"><div class="no-result">
         <i class="ti ti-wifi-off icon-lg"></i>
-        <p>Errore. Riprova.</p>
+        <p>Errore di connessione. Riprova.</p>
         <button class="reset-btn" onclick="reset()" style="margin-top:0.75rem">Riprova</button>
       </div></div>`;
   }

@@ -9,15 +9,54 @@
 </head>
 <body>
 
-  <header class="app-header">
-    <div class="logo">
-      <i class="ti ti-building-hospital"></i>
-      <span>Scottino</span>
+  <!-- SCHERMATA INSERIMENTO CHIAVE -->
+  <div id="screen-config" class="screen" style="display:none">
+    <div class="config-wrap">
+      <div class="config-card">
+        <div class="config-icon"><i class="ti ti-key"></i></div>
+        <h1>Configura Scottino</h1>
+        <p class="config-desc">
+          Inserisci la tua chiave API di Anthropic.<br>
+          Viene salvata in un cookie sul tuo browser — non nel codice.
+        </p>
+        <div class="config-steps">
+          <p class="config-step-title">Dove trovarla:</p>
+          <ol>
+            <li>Vai su <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></li>
+            <li>Menu a sinistra → <strong>API Keys</strong></li>
+            <li>Clicca <strong>Create Key</strong> e copia la chiave</li>
+          </ol>
+        </div>
+        <label class="config-label">API key</label>
+        <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-..."
+               autocomplete="off" onkeydown="if(event.key==='Enter') saveApiKey()" />
+        <div id="config-error" class="config-error" style="display:none"></div>
+        <button class="config-btn" id="configBtn" onclick="saveApiKey()">
+          <i class="ti ti-check"></i> Salva e avvia
+        </button>
+        <p class="config-note">
+          <i class="ti ti-shield-lock"></i>
+          La chiave viene salvata in un cookie per 30 giorni. Non è nel codice sorgente.
+        </p>
+      </div>
     </div>
-    <p class="subtitle">Ordine materiale — Ospedale Le Scotte di Siena</p>
-  </header>
+  </div>
 
-  <main class="app-main">
+  <!-- APP PRINCIPALE -->
+  <div id="screen-app" class="screen" style="display:none">
+
+    <header class="app-header">
+      <div class="logo">
+        <i class="ti ti-building-hospital"></i>
+        <span>Scottino</span>
+      </div>
+      <p class="subtitle">Ordine materiale — Ospedale Le Scotte di Siena</p>
+      <button class="settings-btn" onclick="showScreen('screen-config')" title="Cambia chiave API">
+        <i class="ti ti-settings"></i>
+      </button>
+    </header>
+
+    <main class="app-main">
 
       <div class="steps" id="steps">
         <div class="step active" id="s1"><div class="step-dot"></div>Voce</div>
@@ -89,6 +128,7 @@
       <div id="phase-result"></div>
 
     </main>
+  </div>
 
   <script src="database.js"></script>
   <script src="app.js"></script>
