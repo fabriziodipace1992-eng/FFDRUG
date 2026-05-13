@@ -2,121 +2,44 @@
  * APP.JS — Scottino
  * Ospedale Le Scotte di Siena
  * Fasi 1-4: voce → trascrizione → IA → ricerca prodotto
- *
- * La chiave API è tenuta solo in memoria (variabile JS).
- * Nessun localStorage/sessionStorage — compatibile con Edge.
  */
 
-// ── Stato ─────────────────────────────────────────────────────────────────────
-let APIKEY = "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";   // chiave in memoria, mai su disco
+const APIKEY = "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";
+
 let recognition  = null;
 let recording    = false;
 let hasText      = false;
 let currentOrder = null;
 
-// ── Avvio ─────────────────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
-  showApp();
-});
-
-// ── Gestione schermate ────────────────────────────────────────────────────────
-function showScreen(id) {
-  document.querySelectorAll(".screen").forEach(s => s.style.display = "none");
-  document.getElementById(id).style.display = "block";
-}
-
-function showApp() {
-  showScreen("screen-app");
   buildDBTable();
   checkMicSupport();
-}
+});
 
-function showConfig() {
-  document.getElementById("apiKeyInput").value = "";
-  document.getElementById("config-error").style.display = "none";
-  showApp();
-}
-
-// ── Salvataggio API key ───────────────────────────────────────────────────────
-async function saveApiKey() {
-  const input = document.getElementById("apiKeyInput");
-  const btn   = document.getElementById("configBtn");
-  const err   = document.getElementById("config-error");
-  const key   = input.value.trim();
-
-  if (!key.startsWith("sk-ant-")) {
-    err.textContent = "La chiave deve iniziare con sk-ant-... Controlla di averla copiata per intero.";
-    err.style.display = "block";
-    return;
-  }
-
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> Verifica in corso...';
-  err.style.display = "none";
-
-  try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": key,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true"
-      },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5",
-        max_tokens: 10,
-        messages: [{ role: "user", content: "ok" }]
-      })
-    });
-
-    if (res.status === 401) {
-      err.textContent = "Chiave API non valida. Controlla di averla copiata per intero.";
-      err.style.display = "block";
-      return;
-    }
-
-    APIKEY = key;
-    showApp();
-
-  } catch (e) {
-    err.textContent = "Errore di connessione. Verifica la connessione internet e riprova.";
-    err.style.display = "block";
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '<i class="ti ti-check"></i> Salva e avvia';
-  }
-}
-
-// ── Microfono: verifica supporto ──────────────────────────────────────────────
+// ── Microfono ─────────────────────────────────────────────────────────────────
 function checkMicSupport() {
   const hasApi = "webkitSpeechRecognition" in window || "SpeechRecognition" in window;
   if (!hasApi) {
-    showMicWarning("Il microfono non è supportato in questo browser. Scrivi la richiesta a mano.");
+    showMicWarning("Microfono non supportato in questo browser. Scrivi a mano.");
     document.getElementById("micBtn").disabled = true;
     document.getElementById("micBtn").style.opacity = "0.35";
   }
 }
 
 function showMicWarning(msg) {
-  const warn = document.getElementById("mic-warning");
   document.getElementById("mic-warning-text").textContent = msg;
-  warn.style.display = "flex";
+  document.getElementById("mic-warning").style.display = "flex";
 }
 
 function hideMicWarning() {
   document.getElementById("mic-warning").style.display = "none";
 }
 
-// ── Microfono: registrazione ──────────────────────────────────────────────────
 function toggleMic() {
   if (recording) { recognition.stop(); return; }
 
   const SRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SRec) {
-    showMicWarning("Microfono non supportato. Usa Chrome oppure scrivi a mano.");
-    return;
-  }
+  if (!SRec) { showMicWarning("Microfono non supportato. Scrivi a mano."); return; }
 
   hideMicWarning();
   recognition = new SRec();
@@ -146,7 +69,7 @@ function toggleMic() {
 
   recognition.onerror = (e) => {
     if (e.error === "not-allowed") {
-      showMicWarning("Microfono bloccato. Clicca sull'icona 🔒 nella barra dell'indirizzo e consenti il microfono per questo sito.");
+      showMicWarning("Microfono bloccato. Clicca 🔒 nella barra dell'indirizzo e consenti il microfono.");
     } else if (e.error !== "no-speech") {
       showMicWarning("Errore microfono. Scrivi la richiesta a mano.");
     }
@@ -159,11 +82,8 @@ function toggleMic() {
       'Premi per registrare<br><span class="hint-small">(oppure scrivi direttamente sotto)</span>';
   };
 
-  try {
-    recognition.start();
-  } catch(e) {
-    showMicWarning("Impossibile avviare il microfono. Scrivi la richiesta a mano.");
-  }
+  try { recognition.start(); }
+  catch(e) { showMicWarning("Impossibile avviare il microfono. Scrivi a mano."); }
 }
 
 // ── UI helpers ────────────────────────────────────────────────────────────────
@@ -195,10 +115,7 @@ function toggleDB() {
 
 function clearPlaceholder() {
   const el = document.getElementById("transcription");
-  if (el.classList.contains("empty")) {
-    el.textContent = "";
-    el.classList.remove("empty");
-  }
+  if (el.classList.contains("empty")) { el.textContent = ""; el.classList.remove("empty"); }
 }
 
 function onTextInput() {
@@ -228,12 +145,10 @@ function reset() {
   setStep(1);
 }
 
-// ── Fase 3: interpretazione IA ────────────────────────────────────────────────
+// ── Fase 3: IA ────────────────────────────────────────────────────────────────
 async function analyze() {
   const text = document.getElementById("transcription").textContent.trim();
   if (!text) return;
-
-  if (!APIKEY) { showConfig(); return; }
 
   setStep(3);
   const btn = document.getElementById("analyzeBtn");
@@ -247,10 +162,10 @@ async function analyze() {
 
   const prompt =
     `Sei l'assistente ordini dell'Ospedale Le Scotte di Siena.\n` +
-    `L'operatore sanitario ha detto: "${text}"\n\n` +
-    `Catalogo prodotti disponibili:\n${dbDesc}\n\n` +
-    `Rispondi SOLO con un oggetto JSON valido, senza markdown, senza backtick:\n` +
-    `{"intent":"breve descrizione","product_index":<indice intero o -1>,"quantity":<intero>,"unit":"pacco/conf/pz/flacone","confidence":"alta|media|bassa","note":""}`;
+    `L'operatore ha detto: "${text}"\n\n` +
+    `Catalogo:\n${dbDesc}\n\n` +
+    `Rispondi SOLO con JSON valido, senza markdown:\n` +
+    `{"intent":"descrizione","product_index":<indice o -1>,"quantity":<intero>,"unit":"pacco/pz/conf","confidence":"alta|media|bassa","note":""}`;
 
   try {
     const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -268,16 +183,9 @@ async function analyze() {
       })
     });
 
-    if (res.status === 401) {
-      APIKEY = null;
-      showConfig();
-      return;
-    }
-
     const data   = await res.json();
     const raw    = data.content.map(c => c.text || "").join("").trim().replace(/```json|```/g, "").trim();
     const parsed = JSON.parse(raw);
-
     setStep(4);
     showResult(text, parsed);
 
@@ -286,45 +194,38 @@ async function analyze() {
     btn.innerHTML = '<i class="ti ti-sparkles"></i> Interpreta e cerca prodotto';
     setStep(2);
     document.getElementById("phase-result").innerHTML = `
-      <div class="result-card">
-        <div class="no-result">
-          <i class="ti ti-wifi-off icon-lg"></i>
-          <p>Errore di connessione. Controlla internet e riprova.</p>
-          <button class="reset-btn" onclick="reset()" style="margin-top:0.75rem">Riprova</button>
-        </div>
-      </div>`;
+      <div class="result-card"><div class="no-result">
+        <i class="ti ti-wifi-off icon-lg"></i>
+        <p>Errore. Riprova.</p>
+        <button class="reset-btn" onclick="reset()" style="margin-top:0.75rem">Riprova</button>
+      </div></div>`;
   }
 }
 
-// ── Fase 4: mostra risultato ──────────────────────────────────────────────────
+// ── Fase 4: risultato ─────────────────────────────────────────────────────────
 function showResult(originalText, parsed) {
-  const btn = document.getElementById("analyzeBtn");
-  btn.disabled = false;
-  btn.innerHTML = '<i class="ti ti-sparkles"></i> Interpreta e cerca prodotto';
+  document.getElementById("analyzeBtn").disabled = false;
+  document.getElementById("analyzeBtn").innerHTML = '<i class="ti ti-sparkles"></i> Interpreta e cerca prodotto';
 
   const resultEl = document.getElementById("phase-result");
 
-  if (!parsed || parsed.product_index < 0 || parsed.product_index === undefined) {
+  if (!parsed || parsed.product_index < 0) {
     resultEl.innerHTML = `
-      <div class="result-card">
-        <div class="no-result">
-          <i class="ti ti-search-off icon-lg"></i>
-          <p>Prodotto non trovato nel catalogo</p>
-          <p class="note">${(parsed && parsed.note) || "Prova a riformulare la richiesta"}</p>
-          <button class="reset-btn" onclick="reset()" style="margin-top:1rem">Prova di nuovo</button>
-        </div>
-      </div>`;
+      <div class="result-card"><div class="no-result">
+        <i class="ti ti-search-off icon-lg"></i>
+        <p>Prodotto non trovato nel catalogo</p>
+        <p class="note">${(parsed && parsed.note) || "Prova a riformulare"}</p>
+        <button class="reset-btn" onclick="reset()" style="margin-top:1rem">Prova di nuovo</button>
+      </div></div>`;
     return;
   }
 
   const prod = DB[parsed.product_index];
   if (!prod) { reset(); return; }
-
   currentOrder = { ...prod, quantity: parsed.quantity, unit: parsed.unit };
 
-  const confClass = parsed.confidence === "alta"  ? "badge-success"
-                  : parsed.confidence === "media" ? "badge-warn"
-                  :                                 "badge-info";
+  const confClass = parsed.confidence === "alta" ? "badge-success"
+                  : parsed.confidence === "media" ? "badge-warn" : "badge-info";
 
   resultEl.innerHTML = `
     <div class="result-card">
@@ -335,9 +236,7 @@ function showResult(originalText, parsed) {
           <div class="result-sub">${parsed.intent}</div>
         </div>
       </div>
-      <div class="intent-box">
-        <span class="muted">Testo originale: </span>"${originalText}"
-      </div>
+      <div class="intent-box"><span class="muted">Testo: </span>"${originalText}"</div>
       <table class="product-table">
         <tr><td>Nome prodotto</td>    <td><strong>${prod.nome_prodotto}</strong></td></tr>
         <tr><td>Nome commerciale</td> <td>${prod.nome_commerciale}</td></tr>
@@ -347,8 +246,7 @@ function showResult(originalText, parsed) {
       </table>
       <div class="qty-row">
         <span class="muted">Quantità:</span>
-        <input type="number" class="qty-input" id="qtyInput"
-               value="${parsed.quantity || 1}" min="1" max="999" />
+        <input type="number" class="qty-input" id="qtyInput" value="${parsed.quantity || 1}" min="1" max="999" />
         <span class="muted">${parsed.unit || "pz"}</span>
         <button class="confirm-btn" onclick="confirmOrder()">
           <i class="ti ti-check"></i> Conferma ordine
@@ -360,7 +258,6 @@ function showResult(originalText, parsed) {
     </div>`;
 }
 
-// ── Conferma ordine ───────────────────────────────────────────────────────────
 function confirmOrder() {
   if (!currentOrder) return;
   const qty = parseInt(document.getElementById("qtyInput").value) || 1;

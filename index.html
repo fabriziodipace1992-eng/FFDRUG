@@ -9,57 +9,15 @@
 </head>
 <body>
 
-  <!-- SCHERMATA CONFIGURAZIONE -->
-  <div id="screen-config" class="screen" style="display:none">
-    <div class="config-wrap">
-      <div class="config-card">
-        <div class="config-icon"><i class="ti ti-key"></i></div>
-        <h1>Configura Scottino</h1>
-        <p class="config-desc">
-          Per usare l'intelligenza artificiale serve una chiave API di Anthropic.<br>
-          La chiave viene salvata <strong>solo in questo browser</strong>, mai online.
-        </p>
-        <div class="config-steps">
-          <p class="config-step-title">Come ottenerla (5 minuti):</p>
-          <ol>
-            <li>Vai su <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></li>
-            <li>Registrati o accedi</li>
-            <li>Menu a sinistra → <strong>API Keys</strong></li>
-            <li>Clicca <strong>Create Key</strong>, copia la chiave</li>
-          </ol>
-        </div>
-        <label class="config-label">Incolla qui la tua API key</label>
-        <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-..." autocomplete="off"
-               onkeydown="if(event.key==='Enter') saveApiKey()" />
-        <div id="config-error" class="config-error" style="display:none">
-          Chiave non valida o errore di connessione. Controlla e riprova.
-        </div>
-        <button class="config-btn" id="configBtn" onclick="saveApiKey()">
-          <i class="ti ti-check"></i> Salva e avvia
-        </button>
-        <p class="config-note">
-          <i class="ti ti-shield-lock"></i>
-          Salvata solo nel browser (localStorage). Non viene mai inviata ad altri server.
-        </p>
-      </div>
+  <header class="app-header">
+    <div class="logo">
+      <i class="ti ti-building-hospital"></i>
+      <span>Scottino</span>
     </div>
-  </div>
+    <p class="subtitle">Ordine materiale — Ospedale Le Scotte di Siena</p>
+  </header>
 
-  <!-- APP PRINCIPALE -->
-  <div id="screen-app" class="screen" style="display:none">
-
-    <header class="app-header">
-      <div class="logo">
-        <i class="ti ti-building-hospital"></i>
-        <span>Scottino</span>
-      </div>
-      <p class="subtitle">Ordine materiale — Ospedale Le Scotte di Siena</p>
-      <button class="settings-btn" onclick="showConfig()" title="Cambia API key">
-        <i class="ti ti-settings"></i>
-      </button>
-    </header>
-
-    <main class="app-main">
+  <main class="app-main">
 
       <div class="steps" id="steps">
         <div class="step active" id="s1"><div class="step-dot"></div>Voce</div>
@@ -131,7 +89,6 @@
       <div id="phase-result"></div>
 
     </main>
-  </div>
 
   <script src="database.js"></script>
   <script src="app.js"></script>
