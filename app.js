@@ -67,13 +67,12 @@ async function saveApiKey() {
   err.style.display = "none";
 
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetch("/functions/proxy", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "x-api-key": key,
         "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true"
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5",
@@ -255,13 +254,12 @@ async function analyze() {
     `{"intent":"descrizione","product_index":<indice o -1>,"quantity":<intero>,"unit":"pacco/pz/conf","confidence":"alta|media|bassa","note":""}`;
 
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetch("/functions/proxy", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "x-api-key": APIKEY,
         "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true"
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5",
