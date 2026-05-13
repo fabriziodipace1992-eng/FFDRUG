@@ -74,7 +74,7 @@ async function saveApiKey() {
         "anthropic-dangerous-direct-browser-access": "true"
       },
       body: JSON.stringify({
-        model: "claude-haiku-3-5-20241022",
+        model: "claude-haiku-4-5",
         max_tokens: 10,
         messages: [{ role: "user", content: "ok" }]
       })
@@ -278,7 +278,7 @@ async function analyze() {
         "anthropic-dangerous-direct-browser-access": "true"
       },
       body: JSON.stringify({
-        model: "claude-haiku-3-5-20241022",
+        model: "claude-haiku-4-5",
         max_tokens: 300,
         messages: [{ role: "user", content: prompt }]
       })
