@@ -3,10 +3,7 @@
  * Ospedale Le Scotte di Siena
  *
  * Per aggiungere o modificare prodotti, edita questo file.
- * Colonne: nome_prodotto | nome_commerciale | barcode | codice
- *
- * Struttura di ogni voce:
- * { nome_prodotto, nome_commerciale, barcode, codice }
+ * Struttura: { nome_prodotto, nome_commerciale, barcode, codice }
  */
 
 const DB = [
